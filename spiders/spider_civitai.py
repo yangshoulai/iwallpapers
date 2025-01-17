@@ -34,6 +34,8 @@ class CivitaiImage:
     width = pyoctopus.json("$.width", converter=pyoctopus.int_converter(0))
     height = pyoctopus.json("$.height", converter=pyoctopus.int_converter(0))
     type = pyoctopus.json("$.type")
+    nsfw_level = pyoctopus.json("$.nsfwLevel")
+    model = pyoctopus.json("$.meta.Model")
 
 
 @pyoctopus.hyperlink(pyoctopus.link(pyoctopus.json("$.metadata.nextPage"), headers=HEADERS, priority=1))
@@ -82,7 +84,7 @@ class UnsplashSpider(Spider):
                             description=None,
                             author=wallpaper.author,
                             author_url=f"https://civitai.com/user/{wallpaper.author}",
-                            tags=[],
+                            tags=[x for x in ["ai", "artwork", wallpaper.model, wallpaper.nsfw_level] if x],
                             width=wallpaper.width,
                             height=wallpaper.height,
                             ratio=round(wallpaper.width / wallpaper.height, 2),

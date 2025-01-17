@@ -378,6 +378,24 @@ class SqliteRepository(WallpaperRepository, SubscriptionRepository):
     def get_random_wallpapers(
         self, max_count: int, max_size: int, max_width: int, max_height: int, sfw: bool | None
     ) -> List[Wallpaper]:
+        wallpapers = self._get_random_wallpapers(
+            max_count, max_size, max_width, max_height, sfw, unpublishsed_first=True
+        )
+        if not wallpapers:
+            wallpapers = self._get_random_wallpapers(
+                max_count, max_size, max_width, max_height, sfw, unpublishsed_first=False
+            )
+        return wallpapers
+
+    def _get_random_wallpapers(
+        self,
+        max_count: int,
+        max_size: int,
+        max_width: int,
+        max_height: int,
+        sfw: bool | None,
+        unpublishsed_first: bool = True,
+    ) -> List[Wallpaper]:
         """获取随机壁纸
 
         Args:
@@ -386,11 +404,12 @@ class SqliteRepository(WallpaperRepository, SubscriptionRepository):
             max_width: 最大宽度
             max_height: 最大高度
             sfw: 是否为安全内容，None表示不限制
+            unpublishsed_first: 是否优先返回未发布的壁纸
 
         Returns:
             List[Wallpaper]: 随机壁纸列表
         """
-        conditions = ["file_id IS NULL"]  # 始终为真的条件作为基础
+        conditions = ["file_id IS NULL" if unpublishsed_first else "1 = 1"]  # 始终为真的条件作为基础
         params = []
 
         # 构建查询条件

@@ -10,7 +10,6 @@ from common.log import setup_logging
 from common.model import Wallpaper
 from common.repository import SqliteRepository, WallpaperRepository
 from spiders.spider import Spider
-from spiders.spider_wallhaven import WallhavenSpider
 import pyoctopus
 
 
@@ -46,7 +45,7 @@ class UnsplashSpider(Spider):
         ]
         store = pyoctopus.sqlite_store(os.path.join(SPIDER_STORE_DIR, "unsplash.db"))
         sites = [
-            pyoctopus.site("unsplash.com", proxy=None, limiter=pyoctopus.limiter(2)),
+            pyoctopus.site("unsplash.com", proxy=PROXY, limiter=pyoctopus.limiter(2)),
         ]
 
         processors = [(pyoctopus.ALL, pyoctopus.extractor(UnsplashPageListResponse, collector=self.collect_wallpaper))]

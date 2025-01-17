@@ -2,11 +2,10 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-
-
 # 复制代码
 COPY requirements.txt /app
-COPY spiders/ /app/spiders
+COPY spiders/spider.py /app/spiders/spider.py
+COPY spiders/spider_wallhaven.py /app/spiders/spider_wallhaven.py
 COPY common/ /app/common
 
 # 设置环境变量
@@ -22,4 +21,4 @@ ENV PYTHONUNBUFFERED=1 \
 RUN pip install --no-cache-dir -r requirements.txt    
 
 # 运行爬虫
-CMD ["python", "spiders/main.py"] 
+CMD ["python", "spiders/spider_wallhaven.py"] 

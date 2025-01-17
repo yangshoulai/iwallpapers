@@ -390,7 +390,7 @@ class SqliteRepository(WallpaperRepository, SubscriptionRepository):
         Returns:
             List[Wallpaper]: 随机壁纸列表
         """
-        conditions = ["1=1"]  # 始终为真的条件作为基础
+        conditions = ["file_id IS NULL"]  # 始终为真的条件作为基础
         params = []
 
         # 构建查询条件

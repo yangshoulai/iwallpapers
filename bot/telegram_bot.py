@@ -1,6 +1,7 @@
 from telegram import Update, Chat, ChatMember
 from telegram.ext import Application, CommandHandler, ContextTypes, ChatMemberHandler
-from common.config import TELEGRAM_BOT_TOKEN, PROXY
+from common.config import REPOSITORY_SQLITE_DB, TELEGRAM_BOT_TOKEN, PROXY
+from common.log import setup_logging
 from common.model import Subscription, ChatType, Wallpaper
 from datetime import datetime
 import logging
@@ -10,7 +11,7 @@ from typing import Set
 import random
 from datetime import datetime, timedelta
 
-from common.repository import WallpaperRepository
+from common.repository import SqliteRepository, WallpaperRepository
 
 logger = logging.getLogger(__name__)
 
@@ -182,7 +183,7 @@ class TelegramBot:
         author_link = f"[{self._escape_markdown(wallpaper.author)}]({self._escape_markdown(wallpaper.author_url)})"
 
         caption = (
-            f"📸 *精选壁纸*\n\n"
+            f"📸 *精选壁纸* _{wallpaper.description}_\n\n"
             f"🔗 _来源_：{source_link}\n"
             f"👨‍🎨 _作者_：{author_link}\n"
             f"📏 _分辨率_：`{resolution}`\n"
@@ -382,3 +383,10 @@ class TelegramBot:
             if self._task:
                 self._task.cancel()
             sys.exit(1)
+
+
+if __name__ == "__main__":
+    setup_logging()
+    repository = SqliteRepository(REPOSITORY_SQLITE_DB)
+    bot = TelegramBot(repository)
+    bot.run()

@@ -19,10 +19,26 @@ services:
     depends_on:
       - spider
 
-  spider:
+  spider_wallhaven:
     build:
       context: .
-      dockerfile: spiders/Dockerfile
+      dockerfile: spiders/spider_wallhaven_Dockerfile
+    volumes:
+      - ./data:/data
+    environment:
+      - TZ=Asia/Shanghai
+      - REPOSITORY_SQLITE_DB=/data/iwallpapers.db
+      - SPIDER_STORE_DIR=/data
+      - PROXY=${PROXY}
+      - PYTHONDONTWRITEBYTECODE=1
+      - WALLHAVEN_API_KEY=${WALLHAVEN_API_KEY}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+    restart: unless-stopped
+
+  spider_unsplash:
+    build:
+      context: .
+      dockerfile: spiders/spider_unsplash_Dockerfile
     volumes:
       - ./data:/data
     environment:

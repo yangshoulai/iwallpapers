@@ -2,10 +2,10 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-
 # 复制代码
 COPY requirements.txt /app
-COPY bot/telegram_bot.py /app/bot/telegram_bot.py
+COPY spiders/spider.py /app/spiders/spider.py
+COPY spiders/spider_unsplash.py /app/spiders/spider_unsplash.py
 COPY common/ /app/common
 
 # 设置环境变量
@@ -18,9 +18,7 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_TRUSTED_HOST=repo.huaweicloud.com
 
 # 安装依赖
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt    
 
-
-# 运行机器人
-CMD ["python", "bot/telegram_bot.py"] 
+# 运行爬虫
+CMD ["python", "spiders/spider_unsplash.py"] 

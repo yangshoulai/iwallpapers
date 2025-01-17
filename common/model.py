@@ -5,8 +5,9 @@ from enum import Enum
 
 class ChatType(Enum):
     """聊天类型"""
+
     PRIVATE = "private"  # 私聊
-    GROUP = "group"      # 群组
+    GROUP = "group"  # 群组
     SUPERGROUP = "supergroup"  # 超级群组
     CHANNEL = "channel"  # 频道
 
@@ -14,6 +15,7 @@ class ChatType(Enum):
 @dataclass
 class Subscription:
     """订阅信息"""
+
     # 聊天ID
     chat_id: int
     # 聊天类型
@@ -74,3 +76,14 @@ class Wallpaper:
     created_at: datetime
     # Telegram file_id
     file_id: str
+
+
+@dataclass
+class WallpaperMeta:
+    """壁纸元数据"""
+
+    size: int
+    type: str
+    ext: str
+    width: int
+    height: int

@@ -2,9 +2,11 @@ from datetime import datetime
 import hashlib
 import logging
 import os
-from common.config import WALLHAVEN_API_KEY, SPIDER_STORE_DIR, PROXY
+import time
+from common.config import REPOSITORY_SQLITE_DB, WALLHAVEN_API_KEY, SPIDER_STORE_DIR, PROXY
+from common.log import setup_logging
 from common.model import Wallpaper
-from common.repository import WallpaperRepository
+from common.repository import SqliteRepository, WallpaperRepository
 from spiders.spider import Spider
 
 import pyoctopus
@@ -134,3 +136,27 @@ class WallhavenSpider(Spider):
                 self.repository.insert_wallpaper(wallpaper)
         except Exception as e:
             logging.error(f"Failed to insert wallpaper: {e}")
+
+
+if __name__ == "__main__":
+    setup_logging()
+    """执行任务并等待指定时间后再次执行"""
+    DELAY_HOURS = 12
+    logger = logging.getLogger(__name__)
+
+    while True:
+        try:
+            # 执行爬虫任务
+            repository = SqliteRepository(REPOSITORY_SQLITE_DB)
+            spider = WallhavenSpider(repository)
+            spider.run()
+            # 任务执行完成后，等待12小时
+            logger.info(f"任务完成，等待{DELAY_HOURS}小时后重新执行...")
+
+        except KeyboardInterrupt:
+            logger.info("程序被手动终止")
+            break
+        except Exception as e:
+            logger.error(f"发生错误: {e}", exc_info=True)
+        finally:
+            time.sleep(DELAY_HOURS * 3600)

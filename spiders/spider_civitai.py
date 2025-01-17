@@ -58,7 +58,7 @@ class UnsplashSpider(Spider):
         ]
         store = pyoctopus.sqlite_store(os.path.join(SPIDER_STORE_DIR, "civitai.db"))
         sites = [
-            pyoctopus.site("civitai.com", proxy=PROXY, limiter=pyoctopus.limiter(20)),
+            pyoctopus.site("civitai.com", proxy=PROXY, limiter=pyoctopus.limiter(60)),
         ]
 
         processors = [

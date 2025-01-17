@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  bot:
+    build:
+      context: .
+      dockerfile: bot/Dockerfile
+    volumes:
+      - ./data:/data
+    environment:
+      - TZ=Asia/Shanghai
+      - REPOSITORY_SQLITE_DB=/data/iwallpapers.db
+      - SPIDER_STORE_DIR=/data
+      - PROXY=${PROXY}
+      - PYTHONDONTWRITEBYTECODE=1
+      - WALLHAVEN_API_KEY=${WALLHAVEN_API_KEY}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+    restart: unless-stopped
+    depends_on:
+      - spider
+
+  spider:
+    build:
+      context: .
+      dockerfile: spiders/Dockerfile
+    volumes:
+      - ./data:/data
+    environment:
+      - TZ=Asia/Shanghai
+      - REPOSITORY_SQLITE_DB=/data/iwallpapers.db
+      - SPIDER_STORE_DIR=/data
+      - PROXY=${PROXY}
+      - PYTHONDONTWRITEBYTECODE=1
+      - WALLHAVEN_API_KEY=${WALLHAVEN_API_KEY}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+    restart: unless-stopped

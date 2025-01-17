@@ -17,7 +17,8 @@ services:
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
     restart: unless-stopped
     depends_on:
-      - spider
+      - spider_wallhaven
+      - spider_unsplash
 
   spider_wallhaven:
     build:

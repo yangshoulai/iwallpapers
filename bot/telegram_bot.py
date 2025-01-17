@@ -183,7 +183,7 @@ class TelegramBot:
         author_link = f"[{self._escape_markdown(wallpaper.author)}]({self._escape_markdown(wallpaper.author_url)})"
 
         caption = (
-            f"📸 *精选壁纸* _{wallpaper.description if wallpaper.description else ''}_\n\n"
+            f"📸 *精选壁纸* {('_' + wallpaper.description + '_') if wallpaper.description else ''}\n\n"
             f"🔗 _来源_：{source_link}\n"
             f"👨‍🎨 _作者_：{author_link}\n"
             f"📏 _分辨率_：`{resolution}`\n"

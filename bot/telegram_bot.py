@@ -1,6 +1,6 @@
 from telegram import Update, Chat, ChatMember
 from telegram.ext import Application, CommandHandler, ContextTypes, ChatMemberHandler
-from common.config import REPOSITORY_SQLITE_DB, TELEGRAM_BOT_TOKEN, PROXY, POSTGRES_DNS
+from common.config import REPOSITORY_SQLITE_DB, TELEGRAM_BOT_TOKEN, PROXY, POSTGRES_DSN
 from common.log import setup_logging
 from common.model import Subscription, ChatType, Wallpaper
 from datetime import datetime
@@ -389,6 +389,6 @@ class TelegramBot:
 
 if __name__ == "__main__":
     setup_logging()
-    repository = PostgresRepository(POSTGRES_DNS)
+    repository = PostgresRepository(POSTGRES_DSN)
     bot = TelegramBot(repository)
     bot.run()

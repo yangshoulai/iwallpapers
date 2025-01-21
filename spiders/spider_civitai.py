@@ -4,7 +4,7 @@ import logging
 import os
 import time
 
-from common.config import PROXY, REPOSITORY_SQLITE_DB, SPIDER_STORE_DIR, CIVITAI_API_KEY, POSTGRES_DNS
+from common.config import PROXY, REPOSITORY_SQLITE_DB, SPIDER_STORE_DIR, CIVITAI_API_KEY, POSTGRES_DSN
 from common.log import setup_logging
 from common.model import Wallpaper
 from common.repository import PostgresRepository, SqliteRepository, WallpaperRepository
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     while True:
         try:
             # 执行爬虫任务
-            repository = PostgresRepository(POSTGRES_DNS)
+            repository = PostgresRepository(POSTGRES_DSN)
             spider = CivitaiSpider(repository)
             spider.run()
             # 任务执行完成后，等待12小时

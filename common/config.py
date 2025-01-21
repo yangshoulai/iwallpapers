@@ -17,4 +17,4 @@ TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 
 CIVITAI_API_KEY = os.getenv("CIVITAI_API_KEY", "")
 
-POSTGRES_DNS = os.getenv("POSTGRES_DNS", "")
+POSTGRES_DSN = os.getenv("POSTGRES_DSN", "")

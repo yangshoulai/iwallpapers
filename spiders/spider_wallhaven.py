@@ -3,7 +3,7 @@ import hashlib
 import logging
 import os
 import time
-from common.config import POSTGRES_DNS, REPOSITORY_SQLITE_DB, WALLHAVEN_API_KEY, SPIDER_STORE_DIR, PROXY
+from common.config import POSTGRES_DSN, REPOSITORY_SQLITE_DB, WALLHAVEN_API_KEY, SPIDER_STORE_DIR, PROXY
 from common.log import setup_logging
 from common.model import Wallpaper
 from common.repository import PostgresRepository, SqliteRepository, WallpaperRepository
@@ -147,7 +147,7 @@ if __name__ == "__main__":
     while True:
         try:
             # 执行爬虫任务
-            repository = PostgresRepository(POSTGRES_DNS)
+            repository = PostgresRepository(POSTGRES_DSN)
             spider = WallhavenSpider(repository)
             spider.run()
             # 任务执行完成后，等待12小时

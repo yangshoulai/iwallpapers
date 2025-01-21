@@ -84,7 +84,7 @@ class UnsplashSpider(Spider):
                             description=None,
                             author=wallpaper.author,
                             author_url=f"https://civitai.com/user/{wallpaper.author}",
-                            tags=[x for x in ["ai", "artwork", wallpaper.model, wallpaper.nsfw_level] if x],
+                            tags=[x for x in ["ai", "artwork", wallpaper.nsfw_level] if x and x != "None"],
                             width=wallpaper.width,
                             height=wallpaper.height,
                             ratio=round(wallpaper.width / wallpaper.height, 2),

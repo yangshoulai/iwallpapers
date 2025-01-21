@@ -73,7 +73,7 @@ class Spider(abc.ABC):
         )
         try:
             # 发送 HEAD 请求获取基本信息
-            head_resp = self.session.head(src, timeout=10, allow_redirects=True)
+            head_resp = self.session.head(src, timeout=5, allow_redirects=True)
             head_resp.raise_for_status()
 
             # 获取文件大小

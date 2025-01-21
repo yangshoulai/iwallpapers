@@ -13,6 +13,7 @@ services:
       - PYTHONDONTWRITEBYTECODE=1
       - WALLHAVEN_API_KEY=${WALLHAVEN_API_KEY}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - POSTGRES_DSN=${POSTGRES_DSN}
     restart: unless-stopped
 
   spider_wallhaven:
@@ -30,6 +31,7 @@ services:
       - WALLHAVEN_API_KEY=${WALLHAVEN_API_KEY}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - CIVITAI_API_KEY=${CIVITAI_API_KEY}
+      - POSTGRES_DSN=${POSTGRES_DSN}
     restart: unless-stopped
 
   spider_unsplash:
@@ -47,6 +49,7 @@ services:
       - WALLHAVEN_API_KEY=${WALLHAVEN_API_KEY}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - CIVITAI_API_KEY=${CIVITAI_API_KEY}
+      - POSTGRES_DSN=${POSTGRES_DSN}
     restart: unless-stopped
 
   spider_civitai:
@@ -64,4 +67,5 @@ services:
       - WALLHAVEN_API_KEY=${WALLHAVEN_API_KEY}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - CIVITAI_API_KEY=${CIVITAI_API_KEY}
+      - POSTGRES_DSN=${POSTGRES_DSN}
     restart: unless-stopped

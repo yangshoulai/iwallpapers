@@ -1,5 +1,4 @@
 import logging
-import os
 
 
 def setup_logging():
@@ -10,7 +9,6 @@ def setup_logging():
     - 配置第三方库的日志级别
     """
     # 创建日志目录
-    os.makedirs("logs", exist_ok=True)
 
     # 设置日志格式，添加线程名
     log_format = "%(asctime)s - %(threadName)s - %(name)s - %(levelname)s - %(message)s"
@@ -21,12 +19,7 @@ def setup_logging():
         format=log_format,
         handlers=[
             # 控制台输出
-            logging.StreamHandler(),
-            # 文件输出
-            logging.FileHandler(
-                os.path.join("logs", "app.log"),
-                encoding="utf-8",
-            ),
+            logging.StreamHandler()
         ],
     )
 

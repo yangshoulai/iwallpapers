@@ -12,14 +12,6 @@ from spiders.spider import Spider
 import pyoctopus
 
 
-IMAGE_QUERIES = {
-    # "limit": 50,
-    # "nsfw": "Mature",
-    "sort": "Newest",
-    "period": "Month",
-    # "page": 1,
-}
-
 HEADERS = {
     "Authorization": f"Bearer {CIVITAI_API_KEY}",
     "Content-Type": "application/json",
@@ -50,11 +42,11 @@ class UnsplashSpider(Spider):
     def run(self):
         seeds = [
             pyoctopus.request(
-                f"https://civitai.com/api/v1/images",
-                priority=1,
-                headers=HEADERS,
-                queries=IMAGE_QUERIES,
-            )
+                f"https://civitai.com/api/v1/images?sort=Newest&period=Month&nsfw=Soft", priority=1, headers=HEADERS
+            ),
+            pyoctopus.request(
+                f"https://civitai.com/api/v1/images?sort=Newest&period=Month&nsfw=Mature", priority=1, headers=HEADERS
+            ),
         ]
         store = pyoctopus.sqlite_store(os.path.join(SPIDER_STORE_DIR, "civitai.db"))
         sites = [

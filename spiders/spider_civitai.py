@@ -13,11 +13,11 @@ import pyoctopus
 
 
 IMAGE_QUERIES = {
-    "limit": 50,
+    # "limit": 50,
     # "nsfw": "Mature",
     "sort": "Newest",
     "period": "Month",
-    "page": 1,
+    # "page": 1,
 }
 
 HEADERS = {
@@ -58,13 +58,13 @@ class UnsplashSpider(Spider):
         ]
         store = pyoctopus.sqlite_store(os.path.join(SPIDER_STORE_DIR, "civitai.db"))
         sites = [
-            pyoctopus.site("civitai.com", proxy=PROXY, limiter=pyoctopus.limiter(90)),
+            pyoctopus.site("civitai.com", proxy=PROXY, limiter=pyoctopus.limiter(4)),
         ]
 
         processors = [
             (pyoctopus.ALL, pyoctopus.extractor(CivitaiImageSearchResponse, collector=self.collect_wallpaper))
         ]
-        octopus = pyoctopus.new(processors=processors, sites=sites, store=store, threads=1)
+        octopus = pyoctopus.new(processors=processors, sites=sites, store=store, threads=2)
         octopus.start(*seeds)
 
     def collect_wallpaper(self, response: CivitaiImageSearchResponse):
@@ -74,7 +74,6 @@ class UnsplashSpider(Spider):
                     md5 = hashlib.md5()
                     md5.update(wallpaper.src.encode("utf-8"))
                     id = md5.hexdigest()
-                    time.sleep(1.5)
                     meta = self.get_image_meta(wallpaper.src)
                     if meta.size and meta.type:
                         w = Wallpaper(
@@ -104,7 +103,7 @@ class UnsplashSpider(Spider):
 if __name__ == "__main__":
     setup_logging()
     """执行任务并等待指定时间后再次执行"""
-    DELAY_HOURS = 0.5
+    DELAY_HOURS = 12
     logger = logging.getLogger(__name__)
     while True:
         try:

@@ -44,14 +44,16 @@ class TelegramBot:
     async def sfw(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """处理 /sfw 命令"""
         try:
-            await self._send_wallpaper_to_chat(update.message.chat_id, sfw=True)
+            if not await self._send_wallpaper_to_chat(update.message.chat_id, sfw=True, retry=1):
+                await update.message.reply_text(f"❌ 发送壁纸失败")
         except Exception as e:
             await update.message.reply_text(f"❌ 发送壁纸失败")
 
     async def nsfw(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """处理 /nsfw 命令"""
         try:
-            await self._send_wallpaper_to_chat(update.message.chat_id, sfw=False)
+            if not await self._send_wallpaper_to_chat(update.message.chat_id, sfw=False, retry=1):
+                await update.message.reply_text(f"❌ 发送壁纸失败")
         except Exception as e:
             await update.message.reply_text(f"❌ 发送壁纸失败")
 
@@ -293,7 +295,7 @@ class TelegramBot:
                 tasks = []
                 for subscription in subscriptions:
                     # 创建发送任务
-                    task = asyncio.create_task(self._send_wallpaper_to_chat(subscription.chat_id))
+                    task = asyncio.create_task(self._send_wallpaper_to_chat(subscription.chat_id, retry=1))
                     tasks.append(task)
 
                     if len(tasks) >= 3:  # 最多3个并发任务

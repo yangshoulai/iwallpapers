@@ -4,10 +4,10 @@ import logging
 import os
 import time
 
-from common.config import PROXY, REPOSITORY_SQLITE_DB, SPIDER_STORE_DIR, CIVITAI_API_KEY
+from common.config import PROXY, REPOSITORY_SQLITE_DB, SPIDER_STORE_DIR, CIVITAI_API_KEY, POSTGRES_DNS
 from common.log import setup_logging
 from common.model import Wallpaper
-from common.repository import SqliteRepository, WallpaperRepository
+from common.repository import PostgresRepository, SqliteRepository, WallpaperRepository
 from spiders.spider import Spider
 import pyoctopus
 
@@ -42,11 +42,14 @@ class CivitaiImageSearchResponse:
     wallpapers = pyoctopus.embedded(pyoctopus.json("$.items[*]", multi=True), CivitaiImage)
 
     count = pyoctopus.regex(
-        r"^.*cursor=(\d+)%7C.*$", group=1, selector=pyoctopus.json("$.metadata.nextPage"), converter=pyoctopus.int_converter()
+        r"^.*cursor=(\d+)%7C.*$",
+        group=1,
+        selector=pyoctopus.json("$.metadata.nextPage"),
+        converter=pyoctopus.int_converter(),
     )
 
 
-class UnsplashSpider(Spider):
+class CivitaiSpider(Spider):
     def __init__(self, repository: WallpaperRepository):
         super().__init__(repository)
 
@@ -111,8 +114,8 @@ if __name__ == "__main__":
     while True:
         try:
             # 执行爬虫任务
-            repository = SqliteRepository(REPOSITORY_SQLITE_DB)
-            spider = UnsplashSpider(repository)
+            repository = PostgresRepository(POSTGRES_DNS)
+            spider = CivitaiSpider(repository)
             spider.run()
             # 任务执行完成后，等待12小时
             logger.info(f"任务完成，等待{DELAY_HOURS}小时后重新执行...")

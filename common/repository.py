@@ -3,6 +3,8 @@ from datetime import datetime
 import json
 import logging
 import sqlite3
+import psycopg2
+from psycopg2.extras import DictCursor
 from pathlib import Path
 from typing import Optional, List
 from contextlib import contextmanager
@@ -556,6 +558,325 @@ class SqliteRepository(WallpaperRepository, SubscriptionRepository):
                 updated_at=datetime.fromisoformat(row[6]),
                 active=bool(row[7]),
                 extra_info=json.loads(row[8]) if row[8] else {},
+            )
+        except Exception as e:
+            self.logger.error("Error converting row to subscription: %s", e)
+            return None
+
+
+class PostgresRepository(WallpaperRepository, SubscriptionRepository):
+    def __init__(self, dsn: str):
+        """初始化 PostgreSQL 仓库
+
+        Args:
+            dsn: 数据库连接字符串，格式如：
+                postgresql://user:password@host:port/dbname
+        """
+        self.dsn = dsn
+        self._init_db()
+        self.logger = logging.getLogger(__name__)
+
+    @contextmanager
+    def get_connection(self):
+        """获取数据库连接的上下文管理器"""
+        conn = psycopg2.connect(self.dsn)
+        try:
+            yield conn
+        finally:
+            conn.close()
+
+    def _init_db(self):
+        """初始化数据库表和索引"""
+        create_wallpapers_table = """
+        CREATE TABLE IF NOT EXISTS wallpapers (
+            id TEXT PRIMARY KEY,
+            src TEXT NOT NULL,
+            source TEXT NOT NULL,
+            source_src TEXT,
+            description TEXT,
+            author TEXT,
+            author_url TEXT,
+            tags TEXT[],  -- 使用数组类型存储标签
+            colors TEXT[],  -- 使用数组类型存储颜色
+            category TEXT,
+            width INTEGER,
+            height INTEGER,
+            ratio REAL,
+            size INTEGER,
+            sfw BOOLEAN,
+            type TEXT,
+            extra_info JSONB,  -- 使用JSONB类型存储额外信息
+            file_id TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_wallpapers_source ON wallpapers(source);
+        CREATE INDEX IF NOT EXISTS idx_wallpapers_src ON wallpapers(src);
+        CREATE INDEX IF NOT EXISTS idx_wallpapers_file_id ON wallpapers(file_id);
+        CREATE INDEX IF NOT EXISTS idx_wallpapers_dimensions_size 
+            ON wallpapers(width, height, size);
+        """
+
+        create_subscriptions_table = """
+        CREATE TABLE IF NOT EXISTS subscriptions (
+            chat_id BIGINT PRIMARY KEY,
+            chat_type TEXT NOT NULL,
+            title TEXT NOT NULL,
+            username TEXT,
+            is_admin BOOLEAN NOT NULL,
+            created_at TIMESTAMP NOT NULL,
+            updated_at TIMESTAMP NOT NULL,
+            active BOOLEAN NOT NULL DEFAULT TRUE,
+            extra_info JSONB
+        );
+        """
+
+        with self.get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(create_wallpapers_table)
+                cur.execute(create_subscriptions_table)
+            conn.commit()
+
+    def insert_wallpaper(self, wallpaper: Wallpaper) -> bool:
+        """插入壁纸数据"""
+        sql = """
+        INSERT INTO wallpapers (
+            id, src, source, source_src, description, author, author_url,
+            tags, colors, category, width, height, ratio, size, sfw, type,
+            extra_info, file_id, created_at
+        ) VALUES (
+            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+        )
+        ON CONFLICT (id) DO UPDATE SET
+            file_id = EXCLUDED.file_id,
+            created_at = CURRENT_TIMESTAMP
+        """
+        try:
+            with self.get_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        sql,
+                        (
+                            wallpaper.id,
+                            wallpaper.src,
+                            wallpaper.source,
+                            wallpaper.source_src,
+                            wallpaper.description,
+                            wallpaper.author,
+                            wallpaper.author_url,
+                            wallpaper.tags,  # PostgreSQL 自动处理数组
+                            wallpaper.colors,
+                            wallpaper.category,
+                            wallpaper.width,
+                            wallpaper.height,
+                            wallpaper.ratio,
+                            wallpaper.size,
+                            wallpaper.sfw,
+                            wallpaper.type,
+                            json.dumps(wallpaper.extra_info),
+                            wallpaper.file_id,
+                            wallpaper.created_at,
+                        ),
+                    )
+                conn.commit()
+                return True
+        except Exception as e:
+            self.logger.error("Error inserting wallpaper: %s", e)
+            return False
+
+    def get_wallpaper_by_id(self, wallpaper_id: str) -> Optional[Wallpaper]:
+        """根据ID获取壁纸"""
+        sql = "SELECT * FROM wallpapers WHERE id = %s"
+        try:
+            with self.get_connection() as conn:
+                with conn.cursor(cursor_factory=DictCursor) as cur:
+                    cur.execute(sql, (wallpaper_id,))
+                    row = cur.fetchone()
+                    return self._row_to_wallpaper(row) if row else None
+        except Exception as e:
+            self.logger.error("Error getting wallpaper by id: %s", e)
+            return None
+
+    def get_wallpaper_by_src(self, src: str) -> List[Wallpaper]:
+        """根据源地址获取壁纸"""
+        sql = "SELECT * FROM wallpapers WHERE src = %s"
+        try:
+            with self.get_connection() as conn:
+                with conn.cursor(cursor_factory=DictCursor) as cur:
+                    cur.execute(sql, (src,))
+                    return [self._row_to_wallpaper(row) for row in cur.fetchall() if row]
+        except Exception as e:
+            self.logger.error("Error getting wallpaper by src: %s", e)
+            return []
+
+    def get_random_wallpapers(
+        self, max_count: int, max_size: int, max_width: int, max_height: int, sfw: bool | None
+    ) -> List[Wallpaper]:
+        """获取随机壁纸"""
+        conditions = []
+        params = []
+
+        if max_size > 0:
+            conditions.append("size <= %s")
+            params.append(max_size)
+
+        if max_width > 0:
+            conditions.append("width <= %s")
+            params.append(max_width)
+
+        if max_height > 0:
+            conditions.append("height <= %s")
+            params.append(max_height)
+
+        if sfw is not None:
+            conditions.append("sfw = %s")
+            params.append(sfw)
+
+        where_clause = " AND ".join(conditions) if conditions else "TRUE"
+        sql = f"""
+        SELECT * FROM wallpapers 
+        WHERE {where_clause}
+        ORDER BY RANDOM()
+        LIMIT %s
+        """
+        params.append(max_count)
+
+        try:
+            with self.get_connection() as conn:
+                with conn.cursor(cursor_factory=DictCursor) as cur:
+                    cur.execute(sql, params)
+                    return [self._row_to_wallpaper(row) for row in cur.fetchall()]
+        except Exception as e:
+            self.logger.error("Error getting random wallpapers: %s", e)
+            return []
+
+    def _row_to_wallpaper(self, row) -> Optional[Wallpaper]:
+        """将数据库行转换为Wallpaper对象"""
+        try:
+            return Wallpaper(
+                id=row["id"],
+                src=row["src"],
+                source=row["source"],
+                source_src=row["source_src"],
+                description=row["description"],
+                author=row["author"],
+                author_url=row["author_url"],
+                tags=row["tags"] or [],
+                colors=row["colors"] or [],
+                category=row["category"],
+                width=row["width"],
+                height=row["height"],
+                ratio=row["ratio"],
+                size=row["size"],
+                sfw=row["sfw"],
+                type=row["type"],
+                extra_info=row["extra_info"],
+                file_id=row["file_id"],
+                created_at=row["created_at"],
+            )
+        except Exception as e:
+            self.logger.error("Error converting row to wallpaper: %s", e)
+            return None
+
+    def add_subscription(self, subscription: Subscription) -> bool:
+        """添加订阅"""
+        sql = """
+        INSERT INTO subscriptions (
+            chat_id, chat_type, title, username, is_admin, 
+            created_at, updated_at, active, extra_info
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ON CONFLICT (chat_id) DO UPDATE SET
+            chat_type = EXCLUDED.chat_type,
+            title = EXCLUDED.title,
+            username = EXCLUDED.username,
+            is_admin = EXCLUDED.is_admin,
+            updated_at = CURRENT_TIMESTAMP,
+            active = EXCLUDED.active,
+            extra_info = EXCLUDED.extra_info
+        """
+        try:
+            with self.get_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        sql,
+                        (
+                            subscription.chat_id,
+                            subscription.chat_type.value,
+                            subscription.title,
+                            subscription.username,
+                            subscription.is_admin,
+                            subscription.created_at,
+                            subscription.updated_at,
+                            subscription.active,
+                            json.dumps(subscription.extra_info),
+                        ),
+                    )
+                conn.commit()
+                return True
+        except Exception as e:
+            self.logger.error("Error adding subscription: %s", e)
+            return False
+
+    def update_subscription(self, chat_id: int, updates: dict) -> bool:
+        """更新订阅信息"""
+        if not updates:
+            return True
+
+        set_clause = ", ".join(f"{k} = %s" for k in updates.keys())
+        sql = f"UPDATE subscriptions SET {set_clause} WHERE chat_id = %s"
+
+        try:
+            with self.get_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(sql, [*updates.values(), chat_id])
+                conn.commit()
+                return cur.rowcount > 0
+        except Exception as e:
+            self.logger.error("Error updating subscription: %s", e)
+            return False
+
+    def get_subscription(self, chat_id: int) -> Optional[Subscription]:
+        """获取订阅信息"""
+        sql = "SELECT * FROM subscriptions WHERE chat_id = %s"
+        try:
+            with self.get_connection() as conn:
+                with conn.cursor(cursor_factory=DictCursor) as cur:
+                    cur.execute(sql, (chat_id,))
+                    row = cur.fetchone()
+                    return self._row_to_subscription(row) if row else None
+        except Exception as e:
+            self.logger.error("Error getting subscription: %s", e)
+            return None
+
+    def get_active_subscriptions(self) -> List[Subscription]:
+        """获取所有活跃的订阅"""
+        sql = "SELECT * FROM subscriptions WHERE active = TRUE"
+        try:
+            with self.get_connection() as conn:
+                with conn.cursor(cursor_factory=DictCursor) as cur:
+                    cur.execute(sql)
+                    return [self._row_to_subscription(row) for row in cur.fetchall() if row]
+        except Exception as e:
+            self.logger.error("Error getting active subscriptions: %s", e)
+            return []
+
+    def deactivate_subscription(self, chat_id: int) -> bool:
+        """停用订阅"""
+        return self.update_subscription(chat_id, {"active": False, "updated_at": datetime.now()})
+
+    def _row_to_subscription(self, row) -> Optional[Subscription]:
+        """将数据库行转换为订阅对象"""
+        try:
+            return Subscription(
+                chat_id=row["chat_id"],
+                chat_type=ChatType(row["chat_type"]),
+                title=row["title"],
+                username=row["username"],
+                is_admin=row["is_admin"],
+                created_at=row["created_at"],
+                updated_at=row["updated_at"],
+                active=row["active"],
+                extra_info=row["extra_info"] if row["extra_info"] else {},
             )
         except Exception as e:
             self.logger.error("Error converting row to subscription: %s", e)

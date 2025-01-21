@@ -1,6 +1,6 @@
 from telegram import Update, Chat, ChatMember
 from telegram.ext import Application, CommandHandler, ContextTypes, ChatMemberHandler
-from common.config import REPOSITORY_SQLITE_DB, TELEGRAM_BOT_TOKEN, PROXY
+from common.config import REPOSITORY_SQLITE_DB, TELEGRAM_BOT_TOKEN, PROXY, POSTGRES_DNS
 from common.log import setup_logging
 from common.model import Subscription, ChatType, Wallpaper
 from datetime import datetime
@@ -11,7 +11,7 @@ from typing import Set
 import random
 from datetime import datetime, timedelta
 
-from common.repository import SqliteRepository, WallpaperRepository
+from common.repository import PostgresRepository, SqliteRepository, WallpaperRepository
 
 logger = logging.getLogger(__name__)
 
@@ -389,6 +389,6 @@ class TelegramBot:
 
 if __name__ == "__main__":
     setup_logging()
-    repository = SqliteRepository(REPOSITORY_SQLITE_DB)
+    repository = PostgresRepository(POSTGRES_DNS)
     bot = TelegramBot(repository)
     bot.run()

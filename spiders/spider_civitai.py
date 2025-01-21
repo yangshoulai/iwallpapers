@@ -30,9 +30,20 @@ class CivitaiImage:
     model = pyoctopus.json("$.meta.Model")
 
 
-@pyoctopus.hyperlink(pyoctopus.link(pyoctopus.json("$.metadata.nextPage"), headers=HEADERS, priority=1))
+def terminat(r: "CivitaiImageSearchResponse", content: str, resp: pyoctopus.Response) -> bool:
+
+    return r.count and r.count >= 6000
+
+
+@pyoctopus.hyperlink(
+    pyoctopus.link(pyoctopus.json("$.metadata.nextPage"), headers=HEADERS, priority=1, terminable=terminat)
+)
 class CivitaiImageSearchResponse:
     wallpapers = pyoctopus.embedded(pyoctopus.json("$.items[*]", multi=True), CivitaiImage)
+
+    count = pyoctopus.regex(
+        r"^.*cursor=(\d+)%7C.*$", group=1, selector=pyoctopus.json("$.metadata.nextPage"), converter=pyoctopus.int_converter()
+    )
 
 
 class UnsplashSpider(Spider):

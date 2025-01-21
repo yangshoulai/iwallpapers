@@ -87,7 +87,7 @@ class WallhavenSpider(Spider):
 
         def _collect(w: WallpaperSearchResponse):
 
-            if w.last_page > w.current_page:
+            if w.last_page > w.current_page and w.current_page < 500:
                 requests.append(
                     pyoctopus.request(
                         f"https://wallhaven.cc/api/v1/search",

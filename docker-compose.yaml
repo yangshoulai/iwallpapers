@@ -14,9 +14,6 @@ services:
       - WALLHAVEN_API_KEY=${WALLHAVEN_API_KEY}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
     restart: unless-stopped
-    depends_on:
-      - spider_wallhaven
-      - spider_unsplash
 
   spider_wallhaven:
     build:

@@ -256,7 +256,7 @@ class TelegramBot:
 
                 except Exception as e:
                     if attempt == retry - 1:  # 最后一次重试
-                        logger.error("发送壁纸到 Chat %s 失败: %s", chat_id, e)
+                        logger.error("发送壁纸(%s, %s)到 Chat %s 失败: %s", wallpaper.id, wallpaper.src, chat_id, e)
                         return False
                     await asyncio.sleep(1)  # 重试前等待
 

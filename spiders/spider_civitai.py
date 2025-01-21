@@ -74,6 +74,7 @@ class UnsplashSpider(Spider):
                     md5 = hashlib.md5()
                     md5.update(wallpaper.src.encode("utf-8"))
                     id = md5.hexdigest()
+                    time.sleep(1.5)
                     meta = self.get_image_meta(wallpaper.src)
                     if meta.size and meta.type:
                         w = Wallpaper(
@@ -103,7 +104,7 @@ class UnsplashSpider(Spider):
 if __name__ == "__main__":
     setup_logging()
     """执行任务并等待指定时间后再次执行"""
-    DELAY_HOURS = 12
+    DELAY_HOURS = 0.5
     logger = logging.getLogger(__name__)
     while True:
         try:

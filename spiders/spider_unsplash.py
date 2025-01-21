@@ -5,10 +5,10 @@ import os
 import time
 
 import requests
-from common.config import PROXY, REPOSITORY_SQLITE_DB, SPIDER_STORE_DIR
+from common.config import PROXY, REPOSITORY_SQLITE_DB, SPIDER_STORE_DIR, POSTGRES_DNS
 from common.log import setup_logging
 from common.model import Wallpaper
-from common.repository import SqliteRepository, WallpaperRepository
+from common.repository import PostgresRepository, SqliteRepository, WallpaperRepository
 from spiders.spider import Spider
 import pyoctopus
 
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     while True:
         try:
             # 执行爬虫任务
-            repository = SqliteRepository(REPOSITORY_SQLITE_DB)
+            repository = PostgresRepository(POSTGRES_DNS)
             spider = UnsplashSpider(repository)
             spider.run()
             # 任务执行完成后，等待12小时

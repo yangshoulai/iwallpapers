@@ -3,10 +3,10 @@ import hashlib
 import logging
 import os
 import time
-from common.config import REPOSITORY_SQLITE_DB, WALLHAVEN_API_KEY, SPIDER_STORE_DIR, PROXY
+from common.config import POSTGRES_DNS, REPOSITORY_SQLITE_DB, WALLHAVEN_API_KEY, SPIDER_STORE_DIR, PROXY
 from common.log import setup_logging
 from common.model import Wallpaper
-from common.repository import SqliteRepository, WallpaperRepository
+from common.repository import PostgresRepository, SqliteRepository, WallpaperRepository
 from spiders.spider import Spider
 
 import pyoctopus
@@ -147,7 +147,7 @@ if __name__ == "__main__":
     while True:
         try:
             # 执行爬虫任务
-            repository = SqliteRepository(REPOSITORY_SQLITE_DB)
+            repository = PostgresRepository(POSTGRES_DNS)
             spider = WallhavenSpider(repository)
             spider.run()
             # 任务执行完成后，等待12小时

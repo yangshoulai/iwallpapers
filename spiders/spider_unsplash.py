@@ -37,11 +37,11 @@ class UnsplashSpider(Spider):
     def run(self):
         seeds = [
             pyoctopus.request(
-                f"https://unsplash.com/napi/topics/wallpapers/photos?page={i}&per_page=10",
+                f"https://unsplash.com/napi/topics/wallpapers/photos?page={i}&per_page=50",
                 priority=1,
                 headers={"Accept": "application/json"},
             )
-            for i in range(1, 10)
+            for i in range(1, 200)
         ]
         store = pyoctopus.sqlite_store(os.path.join(SPIDER_STORE_DIR, "unsplash.db"))
         sites = [

@@ -58,13 +58,13 @@ class UnsplashSpider(Spider):
         ]
         store = pyoctopus.sqlite_store(os.path.join(SPIDER_STORE_DIR, "civitai.db"))
         sites = [
-            pyoctopus.site("civitai.com", proxy=PROXY, limiter=pyoctopus.limiter(60)),
+            pyoctopus.site("civitai.com", proxy=PROXY, limiter=pyoctopus.limiter(90)),
         ]
 
         processors = [
             (pyoctopus.ALL, pyoctopus.extractor(CivitaiImageSearchResponse, collector=self.collect_wallpaper))
         ]
-        octopus = pyoctopus.new(processors=processors, sites=sites, store=store, threads=2)
+        octopus = pyoctopus.new(processors=processors, sites=sites, store=store, threads=1)
         octopus.start(*seeds)
 
     def collect_wallpaper(self, response: CivitaiImageSearchResponse):

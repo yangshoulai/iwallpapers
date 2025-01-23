@@ -61,6 +61,9 @@ class CivitaiSpider(Spider):
             pyoctopus.request(
                 f"https://civitai.com/api/v1/images?sort=Newest&period=Month&nsfw=Mature", priority=1, headers=HEADERS
             ),
+            pyoctopus.request(
+                f"https://civitai.com/api/v1/images?sort=Newest&period=Month&nsfw=X", priority=1, headers=HEADERS
+            ),
         ]
         store = pyoctopus.sqlite_store(os.path.join(SPIDER_STORE_DIR, "civitai.db"))
         sites = [
@@ -70,7 +73,9 @@ class CivitaiSpider(Spider):
         processors = [
             (pyoctopus.ALL, pyoctopus.extractor(CivitaiImageSearchResponse, collector=self.collect_wallpaper))
         ]
-        octopus = pyoctopus.new(processors=processors, sites=sites, store=store, threads=2)
+        octopus = pyoctopus.new(
+            processors=processors, sites=sites, store=store, threads=2, ignore_seed_when_has_waiting_requests=True
+        )
         octopus.start(*seeds)
 
     def collect_wallpaper(self, response: CivitaiImageSearchResponse):

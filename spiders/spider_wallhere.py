@@ -82,7 +82,9 @@ class WallhereSpider(Spider):
             ),
         ]
 
-        octopus = pyoctopus.new(processors=processors, sites=sites, store=store, threads=2)
+        octopus = pyoctopus.new(
+            processors=processors, sites=sites, store=store, threads=2, ignore_seed_when_has_waiting_requests=True
+        )
         octopus.start(seed)
 
     def collect_wallpaper(self, resp: WallpaperDetailsResponse):

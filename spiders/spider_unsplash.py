@@ -50,7 +50,12 @@ class UnsplashSpider(Spider):
 
         processors = [(pyoctopus.ALL, pyoctopus.extractor(UnsplashPageListResponse, collector=self.collect_wallpaper))]
         octopus = pyoctopus.new(
-            downloader=pyoctopus.Downloader.CURL_CFFI, processors=processors, sites=sites, store=store, threads=2
+            downloader=pyoctopus.Downloader.CURL_CFFI,
+            processors=processors,
+            sites=sites,
+            store=store,
+            threads=2,
+            ignore_seed_when_has_waiting_requests=True,
         )
         octopus.start(*seeds)
 

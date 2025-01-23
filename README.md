@@ -1,6 +1,6 @@
 # 爱壁纸机器人
 
-一个 Telegram 壁纸机器人，支持订阅和自动推送精美壁纸。
+一个 [Telegram 壁纸机器人](https://t.me/iwallpapers_bot)，支持订阅和自动推送精美壁纸。
 
 ## 功能特点
 

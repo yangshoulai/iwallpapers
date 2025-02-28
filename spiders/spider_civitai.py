@@ -36,10 +36,12 @@ def terminat(r: "CivitaiImageSearchResponse", content: str, resp: pyoctopus.Resp
 
 
 @pyoctopus.hyperlink(
-    pyoctopus.link(pyoctopus.json("$.metadata.nextPage"), headers=HEADERS, priority=1, terminable=terminat)
+    pyoctopus.link(pyoctopus.json("$.metadata.nextPage"),
+                   headers=HEADERS, priority=1, terminable=terminat)
 )
 class CivitaiImageSearchResponse:
-    wallpapers = pyoctopus.embedded(pyoctopus.json("$.items[*]", multi=True), CivitaiImage)
+    wallpapers = pyoctopus.embedded(pyoctopus.json(
+        "$.items[*]", multi=True), CivitaiImage)
 
     count = pyoctopus.regex(
         r"^.*cursor=(\d+)%7C.*$",
@@ -65,13 +67,16 @@ class CivitaiSpider(Spider):
                 f"https://civitai.com/api/v1/images?sort=Newest&period=Month&nsfw=X", priority=1, headers=HEADERS
             ),
         ]
-        store = pyoctopus.sqlite_store(os.path.join(SPIDER_STORE_DIR, "civitai.db"))
+        store = pyoctopus.sqlite_store(
+            os.path.join(SPIDER_STORE_DIR, "civitai.db"))
         sites = [
-            pyoctopus.site("civitai.com", proxy=PROXY, limiter=pyoctopus.limiter(4)),
+            pyoctopus.site("civitai.com", proxy=PROXY,
+                           limiter=pyoctopus.limiter(4)),
         ]
 
         processors = [
-            (pyoctopus.ALL, pyoctopus.extractor(CivitaiImageSearchResponse, collector=self.collect_wallpaper))
+            (pyoctopus.ALL, pyoctopus.extractor(
+                CivitaiImageSearchResponse, collector=self.collect_wallpaper))
         ]
         octopus = pyoctopus.new(
             processors=processors, sites=sites, store=store, threads=2, ignore_seed_when_has_waiting_requests=True
@@ -95,7 +100,8 @@ class CivitaiSpider(Spider):
                             description=None,
                             author=wallpaper.author,
                             author_url=f"https://civitai.com/user/{wallpaper.author}",
-                            tags=[x for x in ["ai", "artwork", wallpaper.nsfw_level] if x and x != "None"],
+                            tags=[x for x in ["ai", "artwork",
+                                              wallpaper.nsfw_level] if x and x != "None"],
                             width=wallpaper.width,
                             height=wallpaper.height,
                             ratio=round(wallpaper.width / wallpaper.height, 2),
